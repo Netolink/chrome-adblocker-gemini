@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <style>
     body {
-      width: 220px;
+      width: 230px;
       font-family: system-ui, -apple-system, sans-serif;
       padding: 12px;
       margin: 0;
@@ -42,7 +42,7 @@
       border-top: 1px solid #eee;
       padding-top: 10px;
     }
-    /* עיצוב כפתור Toggle חלק */
+    /* Toggle Switch Design (LTR Optimized) */
     .switch {
       position: relative;
       display: inline-block;
@@ -64,7 +64,7 @@
 </head>
 <body>
   <div class="header">
-    <span>AdBlocker Pro - Gemini</span>
+    <span>AdBlocker Pro</span>
   </div>
   
   <div class="stats-container">
@@ -73,13 +73,13 @@
       <span id="site-count" class="stat-val">0</span>
     </div>
     <div class="stat-row">
-      <span>Total blocked since installation:</span>
+      <span>Total blocked:</span>
       <span id="global-count" class="stat-val">0</span>
     </div>
   </div>
 
   <div class="toggle-container">
-    <span id="domain-label">Current website</span>
+    <span id="domain-label">Current Site</span>
     <label class="switch">
       <input type="checkbox" id="blocking-state" checked>
       <span class="slider"></span>
