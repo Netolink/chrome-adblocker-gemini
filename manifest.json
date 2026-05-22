@@ -5,7 +5,6 @@
   "description": "Advanced ad blocker based on Manifest V3, including network blocking and cosmetic filtering.",
   "permissions": [
     "declarativeNetRequest",
-    "declarativeNetRequestFeedback",
     "storage",
     "scripting",
     "activeTab"
@@ -16,20 +15,8 @@
   "background": {
     "service_worker": "background.js"
   },
-"action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icon.svg",
-      "32": "icon.svg",
-      "48": "icon.svg",
-      "128": "icon.svg"
-    }
-  },
-  "icons": {
-    "16": "icon.svg",
-    "32": "icon.svg",
-    "48": "icon.svg",
-    "128": "icon.svg"
+  "action": {
+    "default_popup": "popup.html"
   },
   "declarative_net_request": {
     "rule_resources": [
