@@ -22,7 +22,8 @@ const cosmeticSelectors = [
   '#strip_banner', 
   '.commercial-space', 
   '[id^="adv_"]', 
-  '.floating-ad'
+  '.floating-ad',
+  '.gam-placeholder'
 ];
 
 // Inject dynamic CSS to collapse targeted elements instantly
@@ -35,7 +36,7 @@ function injectStyles() {
     style.id = styleId;
     
     const cssRules = cosmeticSelectors.map(selector => {
-      return `${selector} { display: none !important; visibility: hidden !important; height: 0 !important; margin: 0 !important; padding: 0 !important; }`;
+      return `${selector} { display: none !important; visibility: hidden !important; height: 0 !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; }`;
     }).join('\n');
 
     style.textContent = cssRules;
@@ -50,45 +51,59 @@ function collapseEmptyAdElements() {
     const domain = window.location.hostname;
     if (domain.includes('github.com') || domain.includes('stackoverflow.com')) return;
 
-    // 1. Target known ad slots (like Google DFP/GPT used by Globes and TheMarker)
-    const adSlots = document.querySelectorAll('[id^="div-gpt-ad"], iframe[src*="doubleclick"], iframe[id^="google_ads_frame"], .adsbygoogle');
+    let blockedCountThisRun = 0;
+
+    // 1. Target known ad slots and placeholders (including TheMarker's gam-placeholder)
+    const adSlots = document.querySelectorAll('[id^="div-gpt-ad"], iframe[src*="doubleclick"], iframe[id^="google_ads_frame"], .adsbygoogle, .gam-placeholder');
     
     adSlots.forEach(slot => {
-      // Hide the slot itself
-      slot.style.setProperty('display', 'none', 'important');
-      slot.style.setProperty('height', '0', 'important');
+      if (slot.style.display !== 'none') {
+        slot.style.setProperty('display', 'none', 'important');
+        slot.style.setProperty('height', '0', 'important');
+        slot.style.setProperty('min-height', '0', 'important');
+        blockedCountThisRun++;
+      }
 
-      // Traverse up to find fixed-height wrappers (e.g., #jumbo_container or .gam-placeholder)
+      // Traverse up further (up to 5 levels) to catch persistent wrapper blocks on news sites
       let parent = slot.parentElement;
-      for (let i = 0; i < 3; i++) { // Check up to 3 levels up the DOM tree
+      for (let i = 0; i < 5; i++) {
         if (!parent || parent === document.body) break;
         
         const parentId = parent.id?.toString() || "";
         const parentClass = parent.className?.toString() || "";
         
-        // If the parent is an ad wrapper, a banner layout, or a placeholder container
         if (
           parentId.includes('jumbo') || 
           parentClass.includes('Banner') || 
           parentClass.includes('placeholder') || 
           parentClass.includes('advert') ||
-          parentClass.includes('commercial')
+          parentClass.includes('commercial') ||
+          parentClass.includes('h-250')
         ) {
-          parent.style.setProperty('display', 'none', 'important');
-          parent.style.setProperty('height', '0', 'important');
-          parent.style.setProperty('min-height', '0', 'important');
-          parent.style.setProperty('margin', '0', 'important');
-          parent.style.setProperty('padding', '0', 'important');
+          if (parent.style.display !== 'none') {
+            parent.style.setProperty('display', 'none', 'important');
+            parent.style.setProperty('height', '0', 'important');
+            parent.style.setProperty('min-height', '0', 'important');
+            parent.style.setProperty('margin', '0', 'important');
+            parent.style.setProperty('padding', '0', 'important');
+          }
         }
         parent = parent.parentElement;
       }
     });
+
+    // 2. Update stats and counter if new items were blocked
+    if (blockedCountThisRun > 0 && chrome.runtime?.id) {
+      chrome.runtime.sendMessage({ action: "updateCount", count: blockedCountThisRun }, () => {
+        if (chrome.runtime.lastError) { /* Avoid context errors */ }
+      });
+    }
   } catch (e) {}
 }
 
 function runAdBlocker() {
   try {
-    if (!chrome.runtime?.id) return; // Prevent "Extension context invalidated"
+    if (!chrome.runtime?.id) return; 
     
     chrome.storage.local.get(['whitelistedDomains'], (result) => {
       if (chrome.runtime.lastError) return;
